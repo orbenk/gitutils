@@ -1,0 +1,41 @@
+#!/bin/bash
+# pre-push: valida o nome da branch antes de fazer push.
+# Rejeita branches que não seguem o padrão definido em New-Branch.ps1.
+# Instalação: git config core.hooksPath hooks  (ou execute hooks/Install-Hooks.ps1)
+
+current_branch=$(git rev-parse --abbrev-ref HEAD)
+
+# Permite branches base — nunca bloquear main/master/develop
+if echo "$current_branch" | grep -qE "^(main|master|develop|HEAD)$"; then
+  exit 0
+fi
+
+# Prefixos válidos (alinhados com New-Branch.ps1)
+valid_prefixes="feature|fix|hotfix|release|chore|docs|refactor|test|ci"
+
+# Formato: prefixo/descricao-em-kebab-case
+# Aceita ticket opcional no início do slug: fix/proj-42-corrige-bug
+pattern="^($valid_prefixes)/[a-z0-9][a-z0-9_-]*$"
+
+if ! echo "$current_branch" | grep -qE "$pattern"; then
+  echo "" >&2
+  echo "  ✘ Nome de branch inválido: '$current_branch'" >&2
+  echo "" >&2
+  echo "  Formato esperado: <prefixo>/<descricao-em-kebab-case>" >&2
+  echo "" >&2
+  echo "  Prefixos válidos:" >&2
+  echo "    feature   fix   hotfix   release   chore" >&2
+  echo "    docs      refactor       test      ci" >&2
+  echo "" >&2
+  echo "  Exemplos:" >&2
+  echo "    feature/login-oauth2" >&2
+  echo "    fix/proj-42-corrige-timeout" >&2
+  echo "    hotfix/falha-calculo-imposto" >&2
+  echo "    release/2.4.0" >&2
+  echo "" >&2
+  echo "  Dica: use .\\New-Branch.ps1 para criar branches com nomenclatura correta." >&2
+  echo "" >&2
+  exit 1
+fi
+
+exit 0

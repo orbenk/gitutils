@@ -1,4 +1,10 @@
-# git-commit-ai
+# git-utils
+
+Conjunto de scripts PowerShell para automatizar o fluxo Git com IA — criação de branches padronizadas, mensagens de commit semântico e abertura de Pull Requests, tudo via **Google Gemini 2.0 Flash** (gratuito, sem cartão de crédito).
+
+---
+
+# Get-CommitMessage.ps1
 
 Script PowerShell que gera mensagens de commit semântico automaticamente usando IA, a partir do diff do repositório atual.
 
@@ -303,11 +309,60 @@ Script interativo para criação de branches com nomenclatura padronizada, segui
 
 ---
 
-## Fluxo completo de trabalho
+---
 
-Com os três scripts em conjunto, o fluxo fica:
+# Git Hooks
+
+Hooks que validam automaticamente o nome da branch e o formato da mensagem de commit, reforçando as convenções dos scripts acima.
+
+| Hook | Quando dispara | O que valida |
+|---|---|---|
+| `commit-msg` | a cada `git commit` | Formato Conventional Commits |
+| `pre-push` | a cada `git push` | Prefixo e kebab-case da branch |
+
+## Instalação
+
+Execute uma vez após clonar o repositório:
 
 ```powershell
+.\hooks\Install-Hooks.ps1
+```
+
+Isso configura `core.hooksPath = hooks` no git local. Para desativar: `git config --unset core.hooksPath`.
+
+## Prefixos de branch aceitos
+
+`feature` · `fix` · `hotfix` · `release` · `chore` · `docs` · `refactor` · `test` · `ci`
+
+Branches base (`main`, `master`, `develop`) nunca são bloqueadas.
+
+## Exemplos de erros gerados pelos hooks
+
+```
+  ✘ Mensagem de commit inválida.
+
+  Formato esperado:
+    <tipo>(<escopo opcional>): <descrição>
+
+  Dica: use .\Get-CommitMessage.ps1 para gerar a mensagem automaticamente.
+```
+
+```
+  ✘ Nome de branch inválido: 'minha-feature'
+
+  Formato esperado: <prefixo>/<descricao-em-kebab-case>
+
+  Dica: use .\New-Branch.ps1 para criar branches com nomenclatura correta.
+```
+
+---
+
+## Fluxo completo de trabalho
+
+```powershell
+# 0. Configure os hooks (uma única vez após clonar)
+.\hooks\Install-Hooks.ps1
+
 # 1. Cria a branch
 .\New-Branch.ps1 -BaseBranch main
 
@@ -324,10 +379,14 @@ git add .
 ## Estrutura do repositório
 
 ```
-git-commit-ai/
+git-utils/
 ├── New-Branch.ps1          # Criação interativa de branches
 ├── Get-CommitMessage.ps1   # Gera mensagem de commit semântico
 ├── New-PullRequest.ps1     # Gera e abre PR no GitHub
+├── hooks/
+│   ├── commit-msg          # Hook: valida formato da mensagem de commit
+│   ├── pre-push            # Hook: valida nome da branch antes do push
+│   └── Install-Hooks.ps1   # Script de instalação dos hooks
 ├── commit_script_flow.svg  # Diagrama do fluxo
 └── README.md
 ```

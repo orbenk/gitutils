@@ -1,0 +1,41 @@
+#!/bin/bash
+# commit-msg: valida mensagem de commit seguindo o padrão Conventional Commits.
+# Instalação: git config core.hooksPath hooks  (ou execute hooks/Install-Hooks.ps1)
+
+commit_msg=$(cat "$1")
+
+# Ignora commits de merge e fixup
+if echo "$commit_msg" | grep -qE "^(Merge |fixup! |squash! )"; then
+  exit 0
+fi
+
+# Tipos válidos (alinhados com Get-CommitMessage.ps1)
+types="feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert"
+
+# Formato: tipo(escopo opcional)!?: descrição  (mín. 1 char após ": ")
+pattern="^($types)(\([a-z0-9_./-]+\))?(!)?: .+"
+
+if ! echo "$commit_msg" | grep -qE "$pattern"; then
+  echo "" >&2
+  echo "  ✘ Mensagem de commit inválida." >&2
+  echo "" >&2
+  echo "  Formato esperado:" >&2
+  echo "    <tipo>(<escopo opcional>): <descrição>" >&2
+  echo "" >&2
+  echo "  Tipos válidos:" >&2
+  echo "    feat  fix  docs  style  refactor  perf  test  build  ci  chore  revert" >&2
+  echo "" >&2
+  echo "  Exemplos:" >&2
+  echo "    feat(auth): adiciona login com OAuth2" >&2
+  echo "    fix: corrige timeout na requisição de CEP" >&2
+  echo "    chore(deps): atualiza dependências" >&2
+  echo "    feat!: remove suporte ao endpoint legado" >&2
+  echo "" >&2
+  echo "  Mensagem recebida: $commit_msg" >&2
+  echo "" >&2
+  echo "  Dica: use .\\Get-CommitMessage.ps1 para gerar a mensagem automaticamente." >&2
+  echo "" >&2
+  exit 1
+fi
+
+exit 0
