@@ -21,12 +21,13 @@ class GenerateAndCommitAction : AnAction() {
         val project = e.project ?: return
 
         val settings = GitUtilsSettings.getInstance()
-        val apiKey = settings.apiKey.ifBlank { System.getenv("GEMINI_API_KEY") ?: "" }
+        val apiKey = settings.activeApiKey()
 
         if (apiKey.isBlank()) {
+            val envVar = if (settings.provider == "Groq") "GROQ_API_KEY" else "GEMINI_API_KEY"
             val choice = Messages.showOkCancelDialog(
                 project,
-                "Gemini API Key não encontrada.\n\nDeseja abrir as configurações agora?",
+                "${settings.provider} API Key não encontrada ($envVar).\n\nDeseja abrir as configurações agora?",
                 "Git Utils AI",
                 "Abrir Configurações",
                 "Cancelar",
@@ -81,7 +82,7 @@ class GenerateAndCommitAction : AnAction() {
 
                         val branch = resolveBranchName(gitRoot)
                         val relPaths = filePaths.map { it.removePrefix("$gitRoot/").removePrefix("$gitRoot\\") }
-                        val commitMessage = GeminiClient.generateCommitMessage(diff, branch, relPaths, apiKey)
+                        val commitMessage = LlmClient.generateCommitMessage(diff, branch, relPaths, apiKey, settings.provider)
 
                         if (indicator.isCanceled) return
 

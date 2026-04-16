@@ -9,8 +9,11 @@
     markdown. Em seguida, usa o GitHub CLI (gh) para abrir o PR.
 
 .PARAMETER ApiKey
-    Chave de API do Google Gemini.
-    Pode ser definida via variável de ambiente GEMINI_API_KEY.
+    Chave de API do provedor de IA selecionado.
+    Groq: defina GROQ_API_KEY (padrão). Gemini: defina GEMINI_API_KEY.
+
+.PARAMETER Provider
+    Provedor de IA: Groq (padrão, ~14400 req/dia) ou Gemini.
 
 .PARAMETER BaseBranch
     Branch de destino do PR (padrão: detecta automaticamente main/master/develop).
@@ -37,24 +40,28 @@
     .\New-PullRequest.ps1 -BaseBranch develop -Draft -Reviewer "joao,maria"
 
 .EXAMPLE
-    $env:GEMINI_API_KEY = "SUA_CHAVE"
+    $env:GROQ_API_KEY = "SUA_CHAVE"
     .\New-PullRequest.ps1 -Label "enhancement" -NoPush
 
 .NOTES
     Pré-requisitos:
       - GitHub CLI (gh) instalado e autenticado: https://cli.github.com
-      - Chave Gemini gratuita: https://aistudio.google.com/app/apikey
+      - Chave Groq gratuita: https://console.groq.com (padrão)
+      - Chave Gemini gratuita: https://aistudio.google.com/app/apikey (opcional)
 #>
 
 [CmdletBinding()]
 param(
-    [string]$ApiKey      = $env:GEMINI_API_KEY,
+    [string]$ApiKey      = "",
     [string]$BaseBranch  = "",
     [switch]$Draft,
     [string]$Reviewer    = "",
     [string]$Label       = "",
     [int]$MaxDiffLines   = 600,
-    [switch]$NoPush
+    [switch]$NoPush,
+
+    [ValidateSet("Groq", "Gemini")]
+    [string]$Provider    = "Groq"
 )
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -64,30 +71,58 @@ function Write-Success { param([string]$Msg) Write-Host "  ✔ $Msg"  -Foregroun
 function Write-Warn    { param([string]$Msg) Write-Host "  ! $Msg"  -ForegroundColor Yellow }
 function Write-Fail    { param([string]$Msg) Write-Host "`n  ✘ $Msg`n" -ForegroundColor Red; exit 1 }
 
-function Invoke-Gemini {
-    param([string]$Prompt)
+function Invoke-LlmApi {
+    param([string]$Prompt, [int]$MaxTokens = 1500)
 
-    $url  = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$ApiKey"
-    $body = @{
-        contents         = @(@{ parts = @(@{ text = $Prompt }) })
-        generationConfig = @{ temperature = 0.3; maxOutputTokens = 1500 }
-    } | ConvertTo-Json -Depth 10
+    if ($Provider -eq "Groq") {
+        $url  = "https://api.groq.com/openai/v1/chat/completions"
+        $body = @{
+            model       = "llama-3.3-70b-versatile"
+            messages    = @(@{ role = "user"; content = $Prompt })
+            temperature = 0.3
+            max_tokens  = $MaxTokens
+        } | ConvertTo-Json -Depth 10
 
-    try {
-        $resp = Invoke-RestMethod `
-            -Uri $url -Method Post `
-            -ContentType "application/json; charset=utf-8" `
-            -Body ([System.Text.Encoding]::UTF8.GetBytes($body)) `
-            -ErrorAction Stop
+        try {
+            $resp = Invoke-RestMethod `
+                -Uri $url -Method Post `
+                -Headers @{ Authorization = "Bearer $ApiKey" } `
+                -ContentType "application/json; charset=utf-8" `
+                -Body ([System.Text.Encoding]::UTF8.GetBytes($body)) `
+                -ErrorAction Stop
+        }
+        catch {
+            $code = $_.Exception.Response.StatusCode.value__
+            if ($code -eq 401) { Write-Fail "API Key inválida (401). Verifique GROQ_API_KEY em https://console.groq.com" }
+            if ($code -eq 429) { Write-Fail "Limite de requisições atingido (429). Aguarde e tente novamente." }
+            Write-Fail "Erro ao chamar a API do Groq: $_"
+        }
+
+        return $resp.choices[0].message.content.Trim()
     }
-    catch {
-        $code = $_.Exception.Response.StatusCode.value__
-        if ($code -eq 403) { Write-Fail "API Key inválida ou sem permissão (403). Verifique em https://aistudio.google.com/app/apikey" }
-        if ($code -eq 429) { Write-Fail "Limite de requisições atingido (429). Aguarde e tente novamente." }
-        Write-Fail "Erro ao chamar Gemini: $_"
-    }
+    else {
+        $url  = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$ApiKey"
+        $body = @{
+            contents         = @(@{ parts = @(@{ text = $Prompt }) })
+            generationConfig = @{ temperature = 0.3; maxOutputTokens = $MaxTokens }
+        } | ConvertTo-Json -Depth 10
 
-    return $resp.candidates[0].content.parts[0].text.Trim()
+        try {
+            $resp = Invoke-RestMethod `
+                -Uri $url -Method Post `
+                -ContentType "application/json; charset=utf-8" `
+                -Body ([System.Text.Encoding]::UTF8.GetBytes($body)) `
+                -ErrorAction Stop
+        }
+        catch {
+            $code = $_.Exception.Response.StatusCode.value__
+            if ($code -eq 403) { Write-Fail "API Key inválida (403). Verifique GEMINI_API_KEY em https://aistudio.google.com/app/apikey" }
+            if ($code -eq 429) { Write-Fail "Limite de requisições atingido (429). Aguarde e tente novamente." }
+            Write-Fail "Erro ao chamar a API do Gemini: $_"
+        }
+
+        return $resp.candidates[0].content.parts[0].text.Trim()
+    }
 }
 
 function Show-Separator { Write-Host "  $("─" * 55)" -ForegroundColor DarkGray }
@@ -95,7 +130,12 @@ function Show-Separator { Write-Host "  $("─" * 55)" -ForegroundColor DarkGray
 # ── Validações ────────────────────────────────────────────────────────────────
 
 if (-not $ApiKey) {
-    Write-Fail "GEMINI_API_KEY não definida. Use -ApiKey ou exporte a variável de ambiente."
+    $ApiKey = if ($Provider -eq "Groq") { $env:GROQ_API_KEY } else { $env:GEMINI_API_KEY }
+}
+
+if (-not $ApiKey) {
+    $envVar = if ($Provider -eq "Groq") { "GROQ_API_KEY" } else { "GEMINI_API_KEY" }
+    Write-Fail "$envVar não definida. Use -ApiKey ou exporte a variável de ambiente."
 }
 
 foreach ($cmd in @("git", "gh")) {
@@ -244,8 +284,8 @@ Regras para o "body" (markdown):
 
 # ── Chama a IA ────────────────────────────────────────────────────────────────
 
-Write-Step "Enviando contexto para o Gemini..."
-$rawResponse = Invoke-Gemini -Prompt $prompt
+Write-Step "Enviando contexto para o $Provider..."
+$rawResponse = Invoke-LlmApi -Prompt $prompt
 
 # Remove possíveis blocos de código que a IA insira mesmo sendo instruída a não fazer
 $cleanJson = $rawResponse -replace '(?s)```(?:json)?\s*', '' -replace '```', ''

@@ -38,14 +38,14 @@ class GenerateCommitMessageAction : AnAction() {
             return
         }
 
-        // API key: prefer settings, fall back to env var
-        val apiKey = settings.apiKey.ifBlank { System.getenv("GEMINI_API_KEY") ?: "" }
+        val apiKey = settings.activeApiKey()
         if (apiKey.isBlank()) {
+            val envVar = if (settings.provider == "Groq") "GROQ_API_KEY" else "GEMINI_API_KEY"
             Messages.showErrorDialog(
                 project,
-                "Gemini API Key não encontrada.\n\n" +
+                "${settings.provider} API Key não encontrada.\n\n" +
                 "Defina-a em Settings → Tools → Git Utils AI\n" +
-                "ou na variável de ambiente GEMINI_API_KEY.",
+                "ou na variável de ambiente $envVar.",
                 "Git Utils AI"
             )
             return
@@ -68,7 +68,7 @@ class GenerateCommitMessageAction : AnAction() {
         ProgressManager.getInstance().run(
             object : Task.Backgroundable(project, "Gerando mensagem de commit com IA...", true) {
                 override fun run(indicator: ProgressIndicator) {
-                    indicator.text = "Enviando diff para o Gemini..."
+                    indicator.text = "Enviando diff para o ${settings.provider}..."
                     indicator.isIndeterminate = true
 
                     try {
@@ -78,6 +78,7 @@ class GenerateCommitMessageAction : AnAction() {
                             "-ExecutionPolicy", "Bypass",
                             "-File", scriptFile.absolutePath,
                             "-OutputOnly",
+                            "-Provider", settings.provider,
                             "-ApiKey", apiKey
                         )
                             .directory(File(workingDir))

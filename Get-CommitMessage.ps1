@@ -32,7 +32,7 @@
 
 [CmdletBinding()]
 param(
-    [string]$ApiKey = $env:GEMINI_API_KEY,
+    [string]$ApiKey = "",
 
     [int]$MaxDiffLines = 500,
 
@@ -40,7 +40,11 @@ param(
 
     # Modo não-interativo: suprime toda a saída de status e escreve apenas a mensagem
     # de commit no stdout. Usado pelo plugin do IntelliJ/JetBrains.
-    [switch]$OutputOnly
+    [switch]$OutputOnly,
+
+    # Provedor de IA: Groq (padrão, gratuito, ~14400 req/dia) ou Gemini.
+    [ValidateSet("Groq", "Gemini")]
+    [string]$Provider = "Groq"
 )
 
 # ── Helpers ─────────────────────────────────────────────────────────────────
@@ -61,10 +65,69 @@ function Write-Fail {
     exit 1
 }
 
+function Invoke-LlmApi {
+    param([string]$Prompt, [int]$MaxTokens = 300)
+
+    if ($Provider -eq "Groq") {
+        $url  = "https://api.groq.com/openai/v1/chat/completions"
+        $body = @{
+            model       = "llama-3.3-70b-versatile"
+            messages    = @(@{ role = "user"; content = $Prompt })
+            temperature = 0.2
+            max_tokens  = $MaxTokens
+        } | ConvertTo-Json -Depth 10
+
+        try {
+            $resp = Invoke-RestMethod `
+                -Uri $url -Method Post `
+                -Headers @{ Authorization = "Bearer $ApiKey" } `
+                -ContentType "application/json; charset=utf-8" `
+                -Body ([System.Text.Encoding]::UTF8.GetBytes($body)) `
+                -ErrorAction Stop
+        }
+        catch {
+            $code = $_.Exception.Response.StatusCode.value__
+            if ($code -eq 401) { Write-Fail "API Key inválida (401). Verifique GROQ_API_KEY em https://console.groq.com" }
+            if ($code -eq 429) { Write-Fail "Limite de requisições atingido (429). Aguarde e tente novamente." }
+            Write-Fail "Erro ao chamar a API do Groq: $_"
+        }
+
+        return $resp.choices[0].message.content.Trim()
+    }
+    else {
+        $url  = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$ApiKey"
+        $body = @{
+            contents         = @(@{ parts = @(@{ text = $Prompt }) })
+            generationConfig = @{ temperature = 0.2; maxOutputTokens = $MaxTokens }
+        } | ConvertTo-Json -Depth 10
+
+        try {
+            $resp = Invoke-RestMethod `
+                -Uri $url -Method Post `
+                -ContentType "application/json; charset=utf-8" `
+                -Body ([System.Text.Encoding]::UTF8.GetBytes($body)) `
+                -ErrorAction Stop
+        }
+        catch {
+            $code = $_.Exception.Response.StatusCode.value__
+            if ($code -eq 403) { Write-Fail "API Key inválida (403). Verifique GEMINI_API_KEY em https://aistudio.google.com/app/apikey" }
+            if ($code -eq 429) { Write-Fail "Limite de requisições atingido (429). Aguarde e tente novamente." }
+            Write-Fail "Erro ao chamar a API do Gemini: $_"
+        }
+
+        return $resp.candidates[0].content.parts[0].text.Trim()
+    }
+}
+
 # ── Validações iniciais ──────────────────────────────────────────────────────
 
 if (-not $ApiKey) {
-    Write-Fail "API Key não encontrada. Defina a variável de ambiente GEMINI_API_KEY ou passe -ApiKey 'sua_chave'."
+    $ApiKey = if ($Provider -eq "Groq") { $env:GROQ_API_KEY } else { $env:GEMINI_API_KEY }
+}
+
+if (-not $ApiKey) {
+    $envVar = if ($Provider -eq "Groq") { "GROQ_API_KEY" } else { "GEMINI_API_KEY" }
+    Write-Fail "API Key não encontrada. Defina $envVar ou passe -ApiKey 'sua_chave'."
 }
 
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
@@ -154,45 +217,10 @@ Gere UMA mensagem de commit seguindo o padrão Conventional Commits:
 Responda APENAS com a mensagem de commit, sem explicações adicionais, sem blocos de código markdown.
 "@
 
-# ── Chamada à API do Gemini ─────────────────────────────────────────────────
+# ── Chamada à IA ────────────────────────────────────────────────────────────
 
-Write-Step "Enviando diff para o Gemini..."
-
-$apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$ApiKey"
-
-$body = @{
-    contents = @(
-        @{
-            parts = @(
-                @{ text = $prompt }
-            )
-        }
-    )
-    generationConfig = @{
-        temperature     = 0.2
-        maxOutputTokens = 300
-    }
-} | ConvertTo-Json -Depth 10
-
-try {
-    $response = Invoke-RestMethod `
-        -Uri $apiUrl `
-        -Method Post `
-        -ContentType "application/json; charset=utf-8" `
-        -Body ([System.Text.Encoding]::UTF8.GetBytes($body)) `
-        -ErrorAction Stop
-}
-catch {
-    $statusCode = $_.Exception.Response.StatusCode.value__
-    if ($statusCode -eq 400) { Write-Fail "Requisição inválida (400). Verifique se o modelo está disponível na sua região." }
-    if ($statusCode -eq 403) { Write-Fail "API Key inválida ou sem permissão (403). Verifique sua chave em https://aistudio.google.com/app/apikey" }
-    if ($statusCode -eq 429) { Write-Fail "Limite de requisições atingido (429). Aguarde um momento e tente novamente." }
-    Write-Fail "Erro ao chamar a API do Gemini: $_"
-}
-
-# ── Extração do resultado ───────────────────────────────────────────────────
-
-$commitMessage = $response.candidates[0].content.parts[0].text.Trim()
+Write-Step "Enviando diff para o $Provider..."
+$commitMessage = Invoke-LlmApi -Prompt $prompt
 
 if ([string]::IsNullOrWhiteSpace($commitMessage)) {
     Write-Fail "A IA não retornou uma mensagem de commit válida."

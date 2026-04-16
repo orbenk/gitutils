@@ -13,7 +13,9 @@ class GitUtilsSettings : PersistentStateComponent<GitUtilsSettings.State> {
 
     data class State(
         var scriptPath: String = "",
-        var apiKey: String = ""
+        var apiKey: String = "",
+        var groqApiKey: String = "",
+        var provider: String = "Groq"
     )
 
     private var myState = State()
@@ -28,9 +30,28 @@ class GitUtilsSettings : PersistentStateComponent<GitUtilsSettings.State> {
         get() = myState.scriptPath
         set(value) { myState.scriptPath = value }
 
+    /** Gemini API Key (legacy field name retained for XML compatibility). */
     var apiKey: String
         get() = myState.apiKey
         set(value) { myState.apiKey = value }
+
+    var groqApiKey: String
+        get() = myState.groqApiKey
+        set(value) { myState.groqApiKey = value }
+
+    var provider: String
+        get() = myState.provider
+        set(value) { myState.provider = value }
+
+    /** Returns the active API key for the currently selected provider. */
+    fun activeApiKey(): String {
+        val key = if (provider == "Groq") groqApiKey else apiKey
+        if (key.isNotBlank()) return key
+        return if (provider == "Groq")
+            System.getenv("GROQ_API_KEY") ?: ""
+        else
+            System.getenv("GEMINI_API_KEY") ?: ""
+    }
 
     companion object {
         fun getInstance(): GitUtilsSettings =
