@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.orbenk"
-version = "1.0.0"
+version = System.getenv("PLUGIN_VERSION") ?: "1.0.0"
 
 repositories {
     mavenCentral()

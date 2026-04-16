@@ -1,0 +1,58 @@
+name: Release JetBrains Plugin
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write  # necessário para criar a release
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      # Extrai versão numérica da tag (ex: v1.2.3 → 1.2.3)
+      - name: Extract version
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      # Instala Gradle 8.6 e habilita cache de dependências/build automaticamente
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.6'
+
+      - name: Build plugin
+        working-directory: jetbrains-plugin
+        env:
+          PLUGIN_VERSION: ${{ steps.version.outputs.VERSION }}
+        run: gradle buildPlugin
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Plugin JetBrains v${{ steps.version.outputs.VERSION }}"
+          body: |
+            ## Plugin JetBrains — Git Utils AI v${{ steps.version.outputs.VERSION }}
+
+            ### Instalação
+            1. Baixe o arquivo `.zip` abaixo
+            2. No IntelliJ: **Settings → Plugins → ⚙ → Install Plugin from Disk…**
+            3. Configure o caminho do script em **Settings → Tools → Git Utils AI**
+
+            ### Compatibilidade
+            IntelliJ IDEA 2023.3 ou superior (Community e Ultimate)
+          files: jetbrains-plugin/build/distributions/*.zip
+          fail_on_unmatched_files: true
+          generate_release_notes: true
