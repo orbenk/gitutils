@@ -105,11 +105,114 @@ docs(readme): atualiza instruções de instalação no Windows
 chore(deps): atualiza dependências para versões mais recentes
 ```
 
+---
+
+# New-PullRequest.ps1
+
+Script PowerShell que gera o título e o corpo de um Pull Request automaticamente usando IA, e o abre diretamente no GitHub via **GitHub CLI (`gh`)**.
+
+## Funcionalidades
+
+- Compara a branch atual com a branch base (detectada automaticamente)
+- Envia ao Gemini: diff entre branches, histórico de commits e arquivos modificados
+- Gera **título** (Conventional Commits) e **corpo completo em markdown** com seções de resumo, alterações, como testar e checklist
+- Cria o PR via `gh pr create` com suporte a draft, revisores e labels
+- Abre arquivo temporário no editor para revisão manual antes de enviar
+
+## Pré-requisitos adicionais
+
+- **GitHub CLI** instalado e autenticado: [https://cli.github.com](https://cli.github.com)
+
+```powershell
+# Instalar via winget
+winget install GitHub.cli
+
+# Autenticar
+gh auth login
+```
+
+## Como usar
+
+```powershell
+# Uso básico — detecta branch base e cria PR interativamente
+.\New-PullRequest.ps1
+
+# Especificar branch base e criar como draft
+.\New-PullRequest.ps1 -BaseBranch develop -Draft
+
+# Com revisores e labels
+.\New-PullRequest.ps1 -Reviewer "joao,maria" -Label "enhancement,backend"
+
+# Sem fazer push da branch (já está no remote)
+.\New-PullRequest.ps1 -NoPush
+
+# Aumentar limite do diff
+.\New-PullRequest.ps1 -MaxDiffLines 1000
+```
+
+### Menu interativo
+
+```
+  O que deseja fazer?
+  [1] Criar PR agora
+  [2] Criar PR como Draft
+  [3] Editar título antes de criar
+  [4] Abrir no editor (salva em arquivo temporário)
+  [5] Copiar corpo para área de transferência
+  [6] Cancelar
+```
+
+## Parâmetros
+
+| Parâmetro       | Tipo   | Padrão                | Descrição                                                  |
+|-----------------|--------|-----------------------|------------------------------------------------------------|
+| `-ApiKey`       | string | `$env:GEMINI_API_KEY` | Chave de API do Google Gemini                              |
+| `-BaseBranch`   | string | detectado via `gh`    | Branch de destino do PR                                    |
+| `-Draft`        | switch | —                     | Cria o PR como rascunho                                    |
+| `-Reviewer`     | string | —                     | Revisores separados por vírgula (ex: `"joao,maria"`)       |
+| `-Label`        | string | —                     | Labels separados por vírgula (ex: `"bug,enhancement"`)     |
+| `-MaxDiffLines` | int    | `600`                 | Limite de linhas do diff enviado para a IA                 |
+| `-NoPush`       | switch | —                     | Não faz push da branch antes de criar o PR                 |
+
+## Exemplo de PR gerado
+
+**Título:**
+```
+feat(auth): adiciona autenticação via OAuth2 com GitHub
+```
+
+**Corpo:**
+```markdown
+## Resumo
+Implementa o fluxo de autenticação OAuth2 utilizando o provedor GitHub,
+permitindo que usuários façam login com suas contas existentes sem necessidade
+de cadastro adicional.
+
+## Alterações
+- Adicionado provider OAuth2 no módulo de autenticação
+- Criada rota `/auth/github/callback` para receber o token
+- Atualizado middleware de sessão para persistir dados do usuário
+
+## Como testar
+1. Configure `GITHUB_CLIENT_ID` e `GITHUB_CLIENT_SECRET` no `.env`
+2. Acesse `/login` e clique em "Entrar com GitHub"
+3. Autorize o aplicativo e verifique o redirecionamento
+
+## Checklist
+- [ ] Código revisado pelo autor
+- [ ] Testes adicionados/atualizados
+- [ ] Documentação atualizada (se aplicável)
+- [ ] Sem warnings ou erros de lint
+```
+
+---
+
 ## Estrutura do repositório
 
 ```
 git-commit-ai/
-├── Get-CommitMessage.ps1   # Script principal
+├── Get-CommitMessage.ps1   # Gera mensagem de commit semântico
+├── New-PullRequest.ps1     # Gera e abre PR no GitHub
 ├── commit_script_flow.svg  # Diagrama do fluxo
 └── README.md
 ```
