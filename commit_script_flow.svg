@@ -1,60 +1,209 @@
-<svg viewBox="0 0 680 340" xmlns="http://www.w3.org/2000/svg" font-family="monospace" font-size="12">
+<svg viewBox="0 0 960 570" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI',system-ui,sans-serif" font-size="12">
   <defs>
     <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
       <path d="M0,0 L0,6 L8,3 z" fill="#888780"/>
     </marker>
   </defs>
 
-  <!-- 1: git diff -->
-  <rect x="20" y="130" width="110" height="52" rx="6" fill="#D3D1C7" stroke="#5F5E5A" stroke-width="0.5"/>
-  <text x="75" y="151" text-anchor="middle" fill="#2C2C2A" font-size="11" font-weight="500">git diff</text>
-  <text x="75" y="167" text-anchor="middle" fill="#5F5E5A" font-size="10">--cached / unstaged</text>
-  <text x="75" y="179" text-anchor="middle" fill="#5F5E5A" font-size="10">+ branch name</text>
+  <!-- Background -->
+  <rect width="960" height="570" rx="10" fill="#F5F4F0"/>
 
-  <line x1="130" y1="156" x2="155" y2="156" stroke="#888780" stroke-width="1.5" marker-end="url(#arr)"/>
+  <!-- ── Title ──────────────────────────────────────────────────────── -->
+  <text x="480" y="26" text-anchor="middle" fill="#2C2C2A" font-size="15" font-weight="700">git-utils — Fluxo Completo de Trabalho</text>
 
-  <!-- 2: truncar -->
-  <rect x="157" y="130" width="110" height="52" rx="6" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
-  <text x="212" y="151" text-anchor="middle" fill="#412402" font-size="11" font-weight="500">truncar diff</text>
-  <text x="212" y="167" text-anchor="middle" fill="#633806" font-size="10">máx. 500 linhas</text>
-  <text x="212" y="179" text-anchor="middle" fill="#633806" font-size="10">(configurável)</text>
+  <!-- ── Workflow header (step order) ──────────────────────────────── -->
+  <rect x="10"  y="36" width="195" height="28" rx="6" fill="#1B7358"/>
+  <text x="107" y="54" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="600">① New-Branch.ps1</text>
 
-  <line x1="267" y1="156" x2="292" y2="156" stroke="#888780" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="205" y1="50" x2="224" y2="50" stroke="#888780" stroke-width="1.5" marker-end="url(#arr)"/>
 
-  <!-- 3: Gemini API -->
-  <rect x="294" y="116" width="110" height="80" rx="6" fill="#B5D4F4" stroke="#185FA5" stroke-width="0.5"/>
-  <text x="349" y="140" text-anchor="middle" fill="#042C53" font-size="11" font-weight="500">Gemini API</text>
-  <text x="349" y="156" text-anchor="middle" fill="#0C447C" font-size="10">gemini-2.0-flash</text>
-  <text x="349" y="170" text-anchor="middle" fill="#0C447C" font-size="10">prompt com diff</text>
-  <text x="349" y="184" text-anchor="middle" fill="#0C447C" font-size="10">+ branch + arquivos</text>
+  <rect x="226" y="36" width="218" height="28" rx="6" fill="#1855A8"/>
+  <text x="335" y="54" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="600">② Get-CommitMessage.ps1</text>
 
-  <line x1="404" y1="156" x2="429" y2="156" stroke="#888780" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="444" y1="50" x2="463" y2="50" stroke="#888780" stroke-width="1.5" marker-end="url(#arr)"/>
 
-  <!-- 4: resultado -->
-  <rect x="431" y="116" width="110" height="80" rx="6" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
-  <text x="486" y="140" text-anchor="middle" fill="#04342C" font-size="11" font-weight="500">commit msg</text>
-  <text x="486" y="156" text-anchor="middle" fill="#085041" font-size="10">feat(api): adiciona</text>
-  <text x="486" y="170" text-anchor="middle" fill="#085041" font-size="10">endpoint de busca</text>
-  <text x="486" y="184" text-anchor="middle" fill="#085041" font-size="10">por usuário</text>
+  <rect x="465" y="36" width="208" height="28" rx="6" fill="#5A1AAF"/>
+  <text x="569" y="54" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="600">③ New-PullRequest.ps1</text>
 
-  <line x1="486" y1="196" x2="486" y2="222" stroke="#888780" stroke-width="1.5" marker-end="url(#arr)"/>
+  <!-- Plugin chip on the right -->
+  <rect x="710" y="36" width="240" height="28" rx="6" fill="#B45309"/>
+  <text x="830" y="48" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="600">⚡ Plugin JetBrains</text>
+  <text x="830" y="60" text-anchor="middle" fill="#FFE0B2" font-size="9">automatiza ② e ② + add + commit</text>
 
-  <!-- 5: ação interativa -->
-  <rect x="431" y="225" width="110" height="68" rx="6" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
-  <text x="486" y="244" text-anchor="middle" fill="#26215C" font-size="11" font-weight="500">ação interativa</text>
-  <text x="486" y="259" text-anchor="middle" fill="#3C3489" font-size="10">[1] git commit</text>
-  <text x="486" y="272" text-anchor="middle" fill="#3C3489" font-size="10">[2] copiar</text>
-  <text x="486" y="285" text-anchor="middle" fill="#3C3489" font-size="10">[3] editar</text>
+  <!-- Hooks note between header and columns -->
+  <text x="480" y="77" text-anchor="middle" fill="#888780" font-size="9">
+    🔒 hooks/commit-msg valida mensagens · hooks/pre-push valida nome da branch
+  </text>
 
-  <!-- Labels -->
-  <text x="75" y="120" text-anchor="middle" fill="#888780" font-size="10">1. coleta</text>
-  <text x="212" y="120" text-anchor="middle" fill="#888780" font-size="10">2. prepara</text>
-  <text x="349" y="108" text-anchor="middle" fill="#888780" font-size="10">3. IA (gratuito)</text>
-  <text x="486" y="108" text-anchor="middle" fill="#888780" font-size="10">4. resultado</text>
-  <text x="486" y="218" text-anchor="middle" fill="#888780" font-size="10">5. commit</text>
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <!-- COLUMN HEADERS                                                   -->
+  <!-- ════════════════════════════════════════════════════════════════ -->
+
+  <!-- Col 1 header -->
+  <rect x="10"  y="84" width="290" height="20" rx="4" fill="#1B7358"/>
+  <text x="155" y="98" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">New-Branch.ps1</text>
+
+  <!-- Col 2 header -->
+  <rect x="335" y="84" width="290" height="20" rx="4" fill="#1855A8"/>
+  <text x="480" y="98" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">Get-CommitMessage.ps1</text>
+
+  <!-- Col 3 header -->
+  <rect x="660" y="84" width="290" height="20" rx="4" fill="#5A1AAF"/>
+  <text x="805" y="98" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">New-PullRequest.ps1</text>
+
+  <!-- vertical dividers between columns -->
+  <line x1="325" y1="84" x2="325" y2="390" stroke="#CCCBC6" stroke-width="1"/>
+  <line x1="650" y1="84" x2="650" y2="390" stroke="#CCCBC6" stroke-width="1"/>
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <!-- COLUMN 1 — New-Branch.ps1                                        -->
+  <!-- ════════════════════════════════════════════════════════════════ -->
+
+  <!-- Box 1: entrada -->
+  <rect x="22" y="112" width="266" height="46" rx="5" fill="#D4F1E8" stroke="#1B7358" stroke-width="0.5"/>
+  <text x="155" y="129" text-anchor="middle" fill="#0A4A35" font-size="11" font-weight="500">Entrada interativa</text>
+  <text x="155" y="143" text-anchor="middle" fill="#0D5C3A" font-size="10">tipo · ticket (opcional) · nome descritivo</text>
+  <text x="155" y="155" text-anchor="middle" fill="#0D5C3A" font-size="10">ex: Feature · PROJ-42 · "Login OAuth2"</text>
+  <line x1="155" y1="158" x2="155" y2="172" stroke="#888780" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Box 2: slug -->
+  <rect x="22" y="174" width="266" height="36" rx="5" fill="#A8E6D0" stroke="#1B7358" stroke-width="0.5"/>
+  <text x="155" y="189" text-anchor="middle" fill="#0A4A35" font-size="11" font-weight="500">ConvertTo-Slug</text>
+  <text x="155" y="203" text-anchor="middle" fill="#0D5C3A" font-size="10">remove acentos · kebab-case · lowercase</text>
+  <line x1="155" y1="210" x2="155" y2="224" stroke="#888780" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Box 3: preview -->
+  <rect x="22" y="226" width="266" height="36" rx="5" fill="#D4F1E8" stroke="#1B7358" stroke-width="0.5"/>
+  <text x="155" y="241" text-anchor="middle" fill="#0A4A35" font-size="11" font-weight="500">Prévia + confirmação</text>
+  <text x="155" y="255" text-anchor="middle" fill="#0D5C3A" font-size="10">feature/proj-42-login-oauth2</text>
+  <line x1="155" y1="262" x2="155" y2="276" stroke="#888780" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Box 4: git -->
+  <rect x="22" y="278" width="266" height="36" rx="5" fill="#A8E6D0" stroke="#1B7358" stroke-width="0.5"/>
+  <text x="155" y="293" text-anchor="middle" fill="#0A4A35" font-size="11" font-weight="500">git fetch + checkout -b</text>
+  <text x="155" y="307" text-anchor="middle" fill="#0D5C3A" font-size="10">atualiza base · verifica existência local/remote</text>
+  <line x1="155" y1="314" x2="155" y2="328" stroke="#888780" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Box 5: push -->
+  <rect x="22" y="330" width="266" height="36" rx="5" fill="#D4F1E8" stroke="#1B7358" stroke-width="0.5"/>
+  <text x="155" y="345" text-anchor="middle" fill="#0A4A35" font-size="11" font-weight="500">Push para origin (opcional)</text>
+  <text x="155" y="359" text-anchor="middle" fill="#0D5C3A" font-size="10">git push --set-upstream origin</text>
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <!-- COLUMN 2 — Get-CommitMessage.ps1                                 -->
+  <!-- ════════════════════════════════════════════════════════════════ -->
+
+  <!-- Box 1: coleta diff -->
+  <rect x="347" y="112" width="266" height="46" rx="5" fill="#DCEEFF" stroke="#1855A8" stroke-width="0.5"/>
+  <text x="480" y="129" text-anchor="middle" fill="#0D3280" font-size="11" font-weight="500">Coleta diff</text>
+  <text x="480" y="143" text-anchor="middle" fill="#1A44A0" font-size="10">git diff --cached  (fallback: unstaged)</text>
+  <text x="480" y="155" text-anchor="middle" fill="#1A44A0" font-size="10">+ branch name + arquivos modificados</text>
+  <line x1="480" y1="158" x2="480" y2="172" stroke="#888780" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Box 2: truncar -->
+  <rect x="347" y="174" width="266" height="36" rx="5" fill="#B8D4FF" stroke="#1855A8" stroke-width="0.5"/>
+  <text x="480" y="189" text-anchor="middle" fill="#0D3280" font-size="11" font-weight="500">Truncar diff</text>
+  <text x="480" y="203" text-anchor="middle" fill="#1A44A0" font-size="10">máx 500 linhas (configurável: -MaxDiffLines)</text>
+  <line x1="480" y1="210" x2="480" y2="224" stroke="#888780" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Box 3: Gemini -->
+  <rect x="347" y="226" width="266" height="36" rx="5" fill="#B5D4F4" stroke="#185FA5" stroke-width="0.5"/>
+  <text x="480" y="241" text-anchor="middle" fill="#042C53" font-size="11" font-weight="500">Gemini API — gemini-2.0-flash</text>
+  <text x="480" y="255" text-anchor="middle" fill="#0C447C" font-size="10">gratuito · 1 500 req/dia · GEMINI_API_KEY</text>
+  <line x1="480" y1="262" x2="480" y2="276" stroke="#888780" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Box 4: result -->
+  <rect x="347" y="278" width="266" height="36" rx="5" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
+  <text x="480" y="293" text-anchor="middle" fill="#04342C" font-size="11" font-weight="500">Mensagem Conventional Commits</text>
+  <text x="480" y="307" text-anchor="middle" fill="#085041" font-size="10">feat(auth): adiciona login com OAuth2</text>
+  <line x1="480" y1="314" x2="480" y2="328" stroke="#888780" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Box 5: menu -->
+  <rect x="347" y="330" width="266" height="36" rx="5" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+  <text x="480" y="345" text-anchor="middle" fill="#26215C" font-size="11" font-weight="500">Menu interativo</text>
+  <text x="480" y="359" text-anchor="middle" fill="#3C3489" font-size="10">[1] git commit  [2] copiar  [3] editar  [4] cancelar</text>
 
   <!-- AutoStage note -->
-  <rect x="20" y="220" width="120" height="34" rx="4" fill="none" stroke="#B4B2A9" stroke-width="0.5" stroke-dasharray="4,3"/>
-  <text x="80" y="234" text-anchor="middle" fill="#888780" font-size="10">-AutoStage: executa</text>
-  <text x="80" y="248" text-anchor="middle" fill="#888780" font-size="10">git add -A antes</text>
+  <rect x="347" y="373" width="266" height="18" rx="3" fill="none" stroke="#B4B2A9" stroke-width="0.5" stroke-dasharray="3,2"/>
+  <text x="480" y="385" text-anchor="middle" fill="#888780" font-size="9">-AutoStage executa git add -A antes · -OutputOnly para plugin</text>
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <!-- COLUMN 3 — New-PullRequest.ps1                                   -->
+  <!-- ════════════════════════════════════════════════════════════════ -->
+
+  <!-- Box 1: coleta -->
+  <rect x="672" y="112" width="266" height="46" rx="5" fill="#EDE0FF" stroke="#5A1AAF" stroke-width="0.5"/>
+  <text x="805" y="129" text-anchor="middle" fill="#3B0E8C" font-size="11" font-weight="500">Coleta dados da branch</text>
+  <text x="805" y="143" text-anchor="middle" fill="#5A1AAF" font-size="10">git log (commits) + git diff entre branches</text>
+  <text x="805" y="155" text-anchor="middle" fill="#5A1AAF" font-size="10">base detectada via  gh repo view</text>
+  <line x1="805" y1="158" x2="805" y2="172" stroke="#888780" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Box 2: truncar -->
+  <rect x="672" y="174" width="266" height="36" rx="5" fill="#D8C2FF" stroke="#5A1AAF" stroke-width="0.5"/>
+  <text x="805" y="189" text-anchor="middle" fill="#3B0E8C" font-size="11" font-weight="500">Truncar diff</text>
+  <text x="805" y="203" text-anchor="middle" fill="#5A1AAF" font-size="10">máx 600 linhas (configurável: -MaxDiffLines)</text>
+  <line x1="805" y1="210" x2="805" y2="224" stroke="#888780" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Box 3: Gemini JSON -->
+  <rect x="672" y="226" width="266" height="36" rx="5" fill="#B5D4F4" stroke="#185FA5" stroke-width="0.5"/>
+  <text x="805" y="241" text-anchor="middle" fill="#042C53" font-size="11" font-weight="500">Gemini API — retorna JSON</text>
+  <text x="805" y="255" text-anchor="middle" fill="#0C447C" font-size="10">{ "title": "...", "body": "..." }  · temp 0.3</text>
+  <line x1="805" y1="262" x2="805" y2="276" stroke="#888780" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Box 4: PR content -->
+  <rect x="672" y="278" width="266" height="36" rx="5" fill="#C8AAFF" stroke="#5A1AAF" stroke-width="0.5"/>
+  <text x="805" y="293" text-anchor="middle" fill="#3B0E8C" font-size="11" font-weight="500">Título + corpo markdown</text>
+  <text x="805" y="307" text-anchor="middle" fill="#5A1AAF" font-size="10">Resumo · Alterações · Como testar · Checklist</text>
+  <line x1="805" y1="314" x2="805" y2="328" stroke="#888780" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Box 5: menu -->
+  <rect x="672" y="330" width="266" height="36" rx="5" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+  <text x="805" y="345" text-anchor="middle" fill="#26215C" font-size="11" font-weight="500">Menu interativo  +  gh pr create</text>
+  <text x="805" y="359" text-anchor="middle" fill="#3C3489" font-size="10">[1] criar  [2] draft  [3] editar  [4] editor  [5] copiar</text>
+
+  <!-- Prereq note -->
+  <rect x="672" y="373" width="266" height="18" rx="3" fill="none" stroke="#B4B2A9" stroke-width="0.5" stroke-dasharray="3,2"/>
+  <text x="805" y="385" text-anchor="middle" fill="#888780" font-size="9">requer: GitHub CLI (gh) autenticado</text>
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <!-- PLUGIN SECTION                                                   -->
+  <!-- ════════════════════════════════════════════════════════════════ -->
+
+  <rect x="10"  y="400" width="940" height="20" rx="4" fill="#B45309"/>
+  <text x="480" y="414" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">⚡ Plugin JetBrains — IntelliJ / Android Studio  (Settings → Tools → Git Utils AI)</text>
+
+  <!-- LEFT: Gerar com IA -->
+  <rect x="10"  y="426" width="460" height="130" rx="6" fill="#FFF8EE" stroke="#B45309" stroke-width="0.7"/>
+  <text x="240" y="442" text-anchor="middle" fill="#783500" font-size="11" font-weight="600">Botão  "Gerar com IA"</text>
+
+  <rect x="22"  y="450" width="436" height="24" rx="4" fill="#FFE0B2" stroke="#B45309" stroke-width="0.5"/>
+  <text x="240" y="465" text-anchor="middle" fill="#783500" font-size="10">Executa Get-CommitMessage.ps1 -OutputOnly  no git root do projeto aberto</text>
+
+  <line x1="240" y1="474" x2="240" y2="488" stroke="#888780" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="22"  y="490" width="436" height="24" rx="4" fill="#FFCC80" stroke="#B45309" stroke-width="0.5"/>
+  <text x="240" y="505" text-anchor="middle" fill="#783500" font-size="10">Captura stdout → injeta no campo de commit</text>
+
+  <line x1="240" y1="514" x2="240" y2="528" stroke="#888780" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="22"  y="530" width="436" height="20" rx="4" fill="#FFE0B2" stroke="#B45309" stroke-width="0.5"/>
+  <text x="240" y="543" text-anchor="middle" fill="#9A4A00" font-size="10">VcsDataKeys.COMMIT_MESSAGE_CONTROL.setCommitMessage()</text>
+
+  <!-- RIGHT: Selecionar e Commitar -->
+  <rect x="490" y="426" width="460" height="130" rx="6" fill="#FFF8EE" stroke="#B45309" stroke-width="0.7"/>
+  <text x="720" y="442" text-anchor="middle" fill="#783500" font-size="11" font-weight="600">Botão  "Selecionar e Commitar com IA"</text>
+
+  <rect x="502" y="450" width="436" height="24" rx="4" fill="#FFE0B2" stroke="#B45309" stroke-width="0.5"/>
+  <text x="720" y="465" text-anchor="middle" fill="#783500" font-size="10">VcsDataKeys.CHANGES → git diff HEAD -- &lt;arquivos&gt; → GeminiClient (Kotlin)</text>
+
+  <line x1="720" y1="474" x2="720" y2="488" stroke="#888780" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="502" y="490" width="436" height="24" rx="4" fill="#FFCC80" stroke="#B45309" stroke-width="0.5"/>
+  <text x="720" y="505" text-anchor="middle" fill="#783500" font-size="10">CommitConfirmationDialog  — mensagem editável + lista de arquivos</text>
+
+  <line x1="720" y1="514" x2="720" y2="528" stroke="#888780" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="502" y="530" width="436" height="20" rx="4" fill="#FFE0B2" stroke="#B45309" stroke-width="0.5"/>
+  <text x="720" y="543" text-anchor="middle" fill="#9A4A00" font-size="10">git add -- &lt;arquivos&gt;  →  git commit -m  →  atualiza estado VCS</text>
+
 </svg>
