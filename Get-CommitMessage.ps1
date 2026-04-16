@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     Gera uma mensagem de commit semântico usando IA (Google Gemini) a partir do diff do repositório atual.

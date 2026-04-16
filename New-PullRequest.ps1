@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     Gera um Pull Request no GitHub com título e descrição gerados por IA (Google Gemini).
