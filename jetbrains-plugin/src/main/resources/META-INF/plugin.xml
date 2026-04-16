@@ -3,10 +3,13 @@
     <name>Git Utils AI</name>
     <vendor>git-utils</vendor>
     <description><![CDATA[
-        Adiciona um botão na tela de commit do IntelliJ para gerar mensagens de commit
-        semânticas automaticamente via Google Gemini AI, usando o script
-        <code>Get-CommitMessage.ps1</code> do repositório git-utils.<br/><br/>
-        Configure o caminho do script em <b>Settings → Tools → Git Utils AI</b>.
+        Dois botões na tela de commit do IntelliJ para geração de mensagens via Google Gemini AI:<br/>
+        <ul>
+            <li><b>Gerar com IA</b> — gera a mensagem a partir do diff staged atual (via Get-CommitMessage.ps1)</li>
+            <li><b>Selecionar e Commitar com IA</b> — gera o diff dos arquivos selecionados no painel,
+                gera a mensagem, adiciona os arquivos ao stage e realiza o commit</li>
+        </ul>
+        Configure a API Key em <b>Settings → Tools → Git Utils AI</b>.
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
@@ -26,12 +29,20 @@
     </extensions>
 
     <actions>
+        <!-- Gera mensagem a partir do diff staged via Get-CommitMessage.ps1 -->
         <action id="GitUtils.GenerateCommitMessage"
                 class="com.orbenk.GenerateCommitMessageAction"
                 text="Gerar com IA"
-                description="Gera mensagem de commit usando Google Gemini AI (Get-CommitMessage.ps1)">
-            <!-- Adiciona o botão no toolbar da aba de commit (New UI e Classic UI) -->
+                description="Gera mensagem de commit a partir do diff staged (Get-CommitMessage.ps1)">
             <add-to-group group-id="ChangesView.CommitToolbar" anchor="first"/>
+        </action>
+
+        <!-- Gera diff dos arquivos selecionados, gera mensagem e commita diretamente -->
+        <action id="GitUtils.GenerateAndCommit"
+                class="com.orbenk.GenerateAndCommitAction"
+                text="Selecionar e Commitar com IA"
+                description="Gera diff dos arquivos selecionados, cria a mensagem com IA e realiza o commit">
+            <add-to-group group-id="ChangesView.CommitToolbar" anchor="after" relative-to-action="GitUtils.GenerateCommitMessage"/>
         </action>
     </actions>
 </idea-plugin>
