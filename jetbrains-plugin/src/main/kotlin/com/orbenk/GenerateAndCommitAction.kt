@@ -171,7 +171,7 @@ class GenerateAndCommitAction : AnAction() {
 
                         // Refresh VCS state
                         ApplicationManager.getApplication().invokeLater {
-                            VfsUtil.markDirtyAndRefresh(true, true, true)
+                            VfsUtil.markDirtyAndRefresh(true, true, true, *emptyArray<com.intellij.openapi.vfs.VirtualFile>())
                             GitRepositoryManager.getInstance(project).repositories.forEach { it.update() }
                         }
 
