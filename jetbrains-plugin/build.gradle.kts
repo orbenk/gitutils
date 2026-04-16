@@ -24,7 +24,7 @@ intellij {
 tasks {
     patchPluginXml {
         sinceBuild.set("233")   // 2023.3
-        untilBuild.set("251.*") // 2025.1
+        untilBuild.set("")      // sem limite superior — compatível com versões futuras
     }
 
     // Necessário apenas para publicar no Marketplace
