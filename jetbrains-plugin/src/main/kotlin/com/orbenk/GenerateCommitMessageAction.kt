@@ -7,11 +7,8 @@ import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vcs.VcsDataKeys
-import git4idea.repo.GitRepositoryManager
-import java.io.File
 
 class GenerateCommitMessageAction : AnAction() {
 
@@ -20,12 +17,13 @@ class GenerateCommitMessageAction : AnAction() {
         val commitMessageControl = e.getData(VcsDataKeys.COMMIT_MESSAGE_CONTROL) ?: return
 
         val settings = GitUtilsSettings.getInstance()
+        val apiKey = settings.activeApiKey()
 
-        // Script path not configured → offer to open settings
-        if (settings.scriptPath.isBlank()) {
+        if (apiKey.isBlank()) {
+            val envVar = if (settings.provider == "Groq") "GROQ_API_KEY" else "GEMINI_API_KEY"
             val choice = Messages.showOkCancelDialog(
                 project,
-                "Caminho do script Get-CommitMessage.ps1 não configurado.\n\nDeseja abrir as configurações agora?",
+                "${settings.provider} API Key não encontrada ($envVar).\n\nDeseja abrir as configurações agora?",
                 "Git Utils AI",
                 "Abrir Configurações",
                 "Cancelar",
@@ -38,65 +36,55 @@ class GenerateCommitMessageAction : AnAction() {
             return
         }
 
-        val apiKey = settings.activeApiKey()
-        if (apiKey.isBlank()) {
-            val envVar = if (settings.provider == "Groq") "GROQ_API_KEY" else "GEMINI_API_KEY"
-            Messages.showErrorDialog(
+        val changes = e.getData(VcsDataKeys.CHANGES)?.toList() ?: emptyList()
+        if (changes.isEmpty()) {
+            Messages.showWarningDialog(
                 project,
-                "${settings.provider} API Key não encontrada.\n\n" +
-                "Defina-a em Settings → Tools → Git Utils AI\n" +
-                "ou na variável de ambiente $envVar.",
+                "Nenhum arquivo selecionado na tela de commit.\n\nSelecione ao menos um arquivo e tente novamente.",
                 "Git Utils AI"
             )
             return
         }
 
-        val scriptFile = File(settings.scriptPath)
-        if (!scriptFile.exists()) {
-            Messages.showErrorDialog(
-                project,
-                "Script não encontrado:\n${settings.scriptPath}\n\n" +
-                "Verifique o caminho em Settings → Tools → Git Utils AI.",
-                "Git Utils AI"
-            )
+        val gitRoot = GitHelper.resolveGitRoot(project)
+        val filePaths = GitHelper.collectFilePaths(changes, gitRoot)
+
+        if (filePaths.isEmpty()) {
+            Messages.showWarningDialog(project, "Não foi possível determinar os caminhos dos arquivos selecionados.", "Git Utils AI")
             return
         }
 
-        // Working directory must be the project's git root so the diff is collected correctly
-        val workingDir = resolveGitRoot(project)
+        val client = LlmClient.from(settings)
 
         ProgressManager.getInstance().run(
             object : Task.Backgroundable(project, "Gerando mensagem de commit com IA...", true) {
                 override fun run(indicator: ProgressIndicator) {
-                    indicator.text = "Enviando diff para o ${settings.provider}..."
+                    indicator.text = "Gerando diff dos arquivos selecionados..."
                     indicator.isIndeterminate = true
 
                     try {
-                        val process = ProcessBuilder(
-                            "powershell.exe",
-                            "-NonInteractive",
-                            "-ExecutionPolicy", "Bypass",
-                            "-File", scriptFile.absolutePath,
-                            "-OutputOnly",
-                            "-Provider", settings.provider,
-                            "-ApiKey", apiKey
-                        )
-                            .directory(File(workingDir))
-                            .start()
+                        val diff = GitHelper.generateDiff(gitRoot, filePaths)
+                        if (diff.isBlank()) {
+                            ApplicationManager.getApplication().invokeLater {
+                                Messages.showWarningDialog(
+                                    project,
+                                    "Os arquivos selecionados não possuem alterações em relação ao HEAD.",
+                                    "Git Utils AI"
+                                )
+                            }
+                            return
+                        }
 
-                        val stdout = process.inputStream.bufferedReader().readText().trim()
-                        val stderr = process.errorStream.bufferedReader().readText().trim()
-                        val exitCode = process.waitFor()
+                        indicator.text = "Enviando diff para o ${settings.provider}..."
+
+                        val branch = GitHelper.resolveBranchName(gitRoot)
+                        val relPaths = filePaths.map { it.removePrefix("$gitRoot/").removePrefix("$gitRoot\\") }
+                        val commitMessage = client.generateCommitMessage(diff, branch, relPaths)
 
                         if (indicator.isCanceled) return
 
-                        if (exitCode != 0 || stdout.isBlank()) {
-                            val detail = stderr.ifBlank { stdout.ifBlank { "Código de saída: $exitCode" } }
-                            throw RuntimeException(detail)
-                        }
-
                         ApplicationManager.getApplication().invokeLater {
-                            commitMessageControl.setCommitMessage(stdout)
+                            commitMessageControl.setCommitMessage(commitMessage)
                         }
 
                     } catch (ex: Exception) {
@@ -115,14 +103,10 @@ class GenerateCommitMessageAction : AnAction() {
         )
     }
 
-    /** Returns the git root of the first repository in the project, or falls back to the project base path. */
-    private fun resolveGitRoot(project: Project): String {
-        val repos = GitRepositoryManager.getInstance(project).repositories
-        if (repos.isNotEmpty()) return repos.first().root.path
-        return project.basePath ?: "."
-    }
-
     override fun update(e: AnActionEvent) {
-        e.presentation.isEnabledAndVisible = e.project != null
+        val hasProject = e.project != null
+        val hasChanges = (e.getData(VcsDataKeys.CHANGES)?.size ?: 0) > 0
+        e.presentation.isEnabled = hasProject && hasChanges
+        e.presentation.isVisible = hasProject
     }
 }

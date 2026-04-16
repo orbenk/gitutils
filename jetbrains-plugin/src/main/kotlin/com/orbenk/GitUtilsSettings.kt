@@ -12,7 +12,6 @@ import com.intellij.openapi.components.Storage
 class GitUtilsSettings : PersistentStateComponent<GitUtilsSettings.State> {
 
     data class State(
-        var scriptPath: String = "",
         var apiKey: String = "",
         var groqApiKey: String = "",
         var provider: String = "Groq"
@@ -26,11 +25,7 @@ class GitUtilsSettings : PersistentStateComponent<GitUtilsSettings.State> {
         myState = state
     }
 
-    var scriptPath: String
-        get() = myState.scriptPath
-        set(value) { myState.scriptPath = value }
-
-    /** Gemini API Key (legacy field name retained for XML compatibility). */
+    /** Gemini API Key. */
     var apiKey: String
         get() = myState.apiKey
         set(value) { myState.apiKey = value }
