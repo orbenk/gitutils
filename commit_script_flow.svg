@@ -1,0 +1,60 @@
+<svg viewBox="0 0 680 340" xmlns="http://www.w3.org/2000/svg" font-family="monospace" font-size="12">
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#888780"/>
+    </marker>
+  </defs>
+
+  <!-- 1: git diff -->
+  <rect x="20" y="130" width="110" height="52" rx="6" fill="#D3D1C7" stroke="#5F5E5A" stroke-width="0.5"/>
+  <text x="75" y="151" text-anchor="middle" fill="#2C2C2A" font-size="11" font-weight="500">git diff</text>
+  <text x="75" y="167" text-anchor="middle" fill="#5F5E5A" font-size="10">--cached / unstaged</text>
+  <text x="75" y="179" text-anchor="middle" fill="#5F5E5A" font-size="10">+ branch name</text>
+
+  <line x1="130" y1="156" x2="155" y2="156" stroke="#888780" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- 2: truncar -->
+  <rect x="157" y="130" width="110" height="52" rx="6" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+  <text x="212" y="151" text-anchor="middle" fill="#412402" font-size="11" font-weight="500">truncar diff</text>
+  <text x="212" y="167" text-anchor="middle" fill="#633806" font-size="10">máx. 500 linhas</text>
+  <text x="212" y="179" text-anchor="middle" fill="#633806" font-size="10">(configurável)</text>
+
+  <line x1="267" y1="156" x2="292" y2="156" stroke="#888780" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- 3: Gemini API -->
+  <rect x="294" y="116" width="110" height="80" rx="6" fill="#B5D4F4" stroke="#185FA5" stroke-width="0.5"/>
+  <text x="349" y="140" text-anchor="middle" fill="#042C53" font-size="11" font-weight="500">Gemini API</text>
+  <text x="349" y="156" text-anchor="middle" fill="#0C447C" font-size="10">gemini-2.0-flash</text>
+  <text x="349" y="170" text-anchor="middle" fill="#0C447C" font-size="10">prompt com diff</text>
+  <text x="349" y="184" text-anchor="middle" fill="#0C447C" font-size="10">+ branch + arquivos</text>
+
+  <line x1="404" y1="156" x2="429" y2="156" stroke="#888780" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- 4: resultado -->
+  <rect x="431" y="116" width="110" height="80" rx="6" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
+  <text x="486" y="140" text-anchor="middle" fill="#04342C" font-size="11" font-weight="500">commit msg</text>
+  <text x="486" y="156" text-anchor="middle" fill="#085041" font-size="10">feat(api): adiciona</text>
+  <text x="486" y="170" text-anchor="middle" fill="#085041" font-size="10">endpoint de busca</text>
+  <text x="486" y="184" text-anchor="middle" fill="#085041" font-size="10">por usuário</text>
+
+  <line x1="486" y1="196" x2="486" y2="222" stroke="#888780" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- 5: ação interativa -->
+  <rect x="431" y="225" width="110" height="68" rx="6" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+  <text x="486" y="244" text-anchor="middle" fill="#26215C" font-size="11" font-weight="500">ação interativa</text>
+  <text x="486" y="259" text-anchor="middle" fill="#3C3489" font-size="10">[1] git commit</text>
+  <text x="486" y="272" text-anchor="middle" fill="#3C3489" font-size="10">[2] copiar</text>
+  <text x="486" y="285" text-anchor="middle" fill="#3C3489" font-size="10">[3] editar</text>
+
+  <!-- Labels -->
+  <text x="75" y="120" text-anchor="middle" fill="#888780" font-size="10">1. coleta</text>
+  <text x="212" y="120" text-anchor="middle" fill="#888780" font-size="10">2. prepara</text>
+  <text x="349" y="108" text-anchor="middle" fill="#888780" font-size="10">3. IA (gratuito)</text>
+  <text x="486" y="108" text-anchor="middle" fill="#888780" font-size="10">4. resultado</text>
+  <text x="486" y="218" text-anchor="middle" fill="#888780" font-size="10">5. commit</text>
+
+  <!-- AutoStage note -->
+  <rect x="20" y="220" width="120" height="34" rx="4" fill="none" stroke="#B4B2A9" stroke-width="0.5" stroke-dasharray="4,3"/>
+  <text x="80" y="234" text-anchor="middle" fill="#888780" font-size="10">-AutoStage: executa</text>
+  <text x="80" y="248" text-anchor="middle" fill="#888780" font-size="10">git add -A antes</text>
+</svg>
