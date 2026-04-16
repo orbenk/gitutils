@@ -9,6 +9,7 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vcs.VcsDataKeys
+import com.intellij.openapi.vcs.changes.ChangeListManager
 
 class GenerateCommitMessageAction : AnAction() {
 
@@ -104,9 +105,9 @@ class GenerateCommitMessageAction : AnAction() {
     }
 
     override fun update(e: AnActionEvent) {
-        val hasProject = e.project != null
-        val hasChanges = (e.getData(VcsDataKeys.CHANGES)?.size ?: 0) > 0
-        e.presentation.isEnabled = hasProject && hasChanges
-        e.presentation.isVisible = hasProject
+        val project = e.project
+        e.presentation.isVisible = project != null
+        e.presentation.isEnabled = project != null &&
+            ChangeListManager.getInstance(project).allChanges.isNotEmpty()
     }
 }

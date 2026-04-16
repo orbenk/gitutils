@@ -10,6 +10,7 @@ import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vcs.VcsDataKeys
+import com.intellij.openapi.vcs.changes.ChangeListManager
 import com.intellij.openapi.vfs.VfsUtil
 import git4idea.repo.GitRepositoryManager
 import java.io.File
@@ -160,9 +161,9 @@ class GenerateAndCommitAction : AnAction() {
     }
 
     override fun update(e: AnActionEvent) {
-        val hasProject = e.project != null
-        val hasChanges = (e.getData(VcsDataKeys.CHANGES)?.size ?: 0) > 0
-        e.presentation.isEnabled = hasProject && hasChanges
-        e.presentation.isVisible = hasProject
+        val project = e.project
+        e.presentation.isVisible = project != null
+        e.presentation.isEnabled = project != null &&
+            ChangeListManager.getInstance(project).allChanges.isNotEmpty()
     }
 }
