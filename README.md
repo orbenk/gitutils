@@ -100,6 +100,7 @@ Após gerar a mensagem, o script exibe:
 | `-ApiKey`      | string  | `$env:GEMINI_API_KEY`   | Chave de API do Google Gemini                          |
 | `-MaxDiffLines`| int     | `500`                   | Limite de linhas do diff enviado para a IA             |
 | `-AutoStage`   | switch  | —                       | Executa `git add -A` antes de coletar o diff           |
+| `-OutputOnly`  | switch  | —                       | Suprime o menu interativo e escreve apenas a mensagem no stdout (usado pelo plugin JetBrains) |
 
 ## Exemplos de mensagens geradas
 
@@ -357,6 +358,57 @@ Branches base (`main`, `master`, `develop`) nunca são bloqueadas.
 
 ---
 
+# Plugin JetBrains
+
+Plugin Kotlin para IntelliJ IDEA (e derivados) que adiciona dois botões no toolbar da tela de commit.
+
+## Funcionalidades
+
+| Botão | O que faz |
+|---|---|
+| **Gerar com IA** | Executa `Get-CommitMessage.ps1 -OutputOnly` e injeta o resultado no campo de mensagem |
+| **Selecionar e Commitar com IA** | Lê os arquivos marcados no painel, gera o diff, chama o Gemini direto do Kotlin, abre dialog de confirmação e executa `git add` + `git commit` |
+
+## Pré-requisitos
+
+- IntelliJ IDEA 2023.3 ou superior (Community ou Ultimate)
+- JDK 17+
+- `GEMINI_API_KEY` configurada (variável de ambiente ou nas configurações do plugin)
+
+## Build e instalação
+
+```powershell
+cd jetbrains-plugin
+
+# Gera o .zip do plugin
+.\gradlew buildPlugin   # Linux/macOS: ./gradlew buildPlugin
+
+# O arquivo é gerado em:
+# jetbrains-plugin/build/distributions/git-utils-plugin-1.0.0.zip
+```
+
+Instalar no IntelliJ: **Settings → Plugins → ⚙ → Install Plugin from Disk…** e selecione o `.zip`.
+
+> Também é possível abrir a pasta `jetbrains-plugin/` diretamente no IntelliJ — ele detecta o projeto Gradle e permite rodar via **Run Plugin** (`▶`) sem precisar instalar manualmente.
+
+## Configuração
+
+Após instalar, acesse **Settings → Tools → Git Utils AI**:
+
+| Campo | Descrição |
+|---|---|
+| **Caminho do script** | Caminho absoluto para `Get-CommitMessage.ps1` (usado pelo botão "Gerar com IA") |
+| **Gemini API Key** | Opcional — se omitida, usa a variável de ambiente `GEMINI_API_KEY` |
+
+## Como usar
+
+1. Abra a aba **Commit** (`Ctrl+K`) em qualquer projeto Git
+2. Marque os arquivos desejados na lista de alterações
+3. Clique em **Gerar com IA** para popular o campo de mensagem, ou
+4. Clique em **Selecionar e Commitar com IA** para gerar a mensagem e commitar os arquivos marcados diretamente
+
+---
+
 ## Fluxo completo de trabalho
 
 ```powershell
@@ -380,14 +432,24 @@ git add .
 
 ```
 git-utils/
-├── New-Branch.ps1          # Criação interativa de branches
-├── Get-CommitMessage.ps1   # Gera mensagem de commit semântico
-├── New-PullRequest.ps1     # Gera e abre PR no GitHub
+├── New-Branch.ps1               # Criação interativa de branches
+├── Get-CommitMessage.ps1        # Gera mensagem de commit semântico
+├── New-PullRequest.ps1          # Gera e abre PR no GitHub
 ├── hooks/
-│   ├── commit-msg          # Hook: valida formato da mensagem de commit
-│   ├── pre-push            # Hook: valida nome da branch antes do push
-│   └── Install-Hooks.ps1   # Script de instalação dos hooks
-├── commit_script_flow.svg  # Diagrama do fluxo
+│   ├── commit-msg               # Hook: valida formato da mensagem de commit
+│   ├── pre-push                 # Hook: valida nome da branch antes do push
+│   └── Install-Hooks.ps1        # Script de instalação dos hooks
+├── jetbrains-plugin/            # Plugin para IntelliJ IDEA
+│   ├── build.gradle.kts
+│   ├── src/main/kotlin/com/orbenk/
+│   │   ├── GenerateCommitMessageAction.kt   # Botão "Gerar com IA"
+│   │   ├── GenerateAndCommitAction.kt       # Botão "Selecionar e Commitar com IA"
+│   │   ├── GeminiClient.kt                  # Chamada direta à API do Gemini
+│   │   ├── CommitConfirmationDialog.kt      # Dialog de confirmação editável
+│   │   ├── GitUtilsSettings.kt              # Persistência das configurações
+│   │   └── GitUtilsSettingsConfigurable.kt  # Página Settings → Tools → Git Utils AI
+│   └── src/main/resources/META-INF/plugin.xml
+├── commit_script_flow.svg       # Diagrama do fluxo completo
 └── README.md
 ```
 
