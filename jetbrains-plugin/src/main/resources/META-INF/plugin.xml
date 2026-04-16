@@ -1,0 +1,37 @@
+<idea-plugin>
+    <id>com.orbenk.commit-ai</id>
+    <name>Git Utils AI</name>
+    <vendor>git-utils</vendor>
+    <description><![CDATA[
+        Adiciona um botão na tela de commit do IntelliJ para gerar mensagens de commit
+        semânticas automaticamente via Google Gemini AI, usando o script
+        <code>Get-CommitMessage.ps1</code> do repositório git-utils.<br/><br/>
+        Configure o caminho do script em <b>Settings → Tools → Git Utils AI</b>.
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>Git4Idea</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Persiste configurações (caminho do script + API key) -->
+        <applicationService
+            serviceImplementation="com.orbenk.GitUtilsSettings"/>
+
+        <!-- Página em Settings > Tools > Git Utils AI -->
+        <applicationConfigurable
+            parentId="tools"
+            instance="com.orbenk.GitUtilsSettingsConfigurable"
+            id="com.orbenk.settings"
+            displayName="Git Utils AI"/>
+    </extensions>
+
+    <actions>
+        <action id="GitUtils.GenerateCommitMessage"
+                class="com.orbenk.GenerateCommitMessageAction"
+                text="Gerar com IA"
+                description="Gera mensagem de commit usando Google Gemini AI (Get-CommitMessage.ps1)">
+            <!-- Adiciona o botão no toolbar da aba de commit (New UI e Classic UI) -->
+            <add-to-group group-id="ChangesView.CommitToolbar" anchor="first"/>
+        </action>
+    </actions>
+</idea-plugin>

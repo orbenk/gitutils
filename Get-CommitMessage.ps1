@@ -36,24 +36,28 @@ param(
 
     [int]$MaxDiffLines = 500,
 
-    [switch]$AutoStage
+    [switch]$AutoStage,
+
+    # Modo não-interativo: suprime toda a saída de status e escreve apenas a mensagem
+    # de commit no stdout. Usado pelo plugin do IntelliJ/JetBrains.
+    [switch]$OutputOnly
 )
 
 # ── Helpers ─────────────────────────────────────────────────────────────────
 
 function Write-Step {
     param([string]$Message, [string]$Color = "Cyan")
-    Write-Host "`n  » $Message" -ForegroundColor $Color
+    if (-not $OutputOnly) { Write-Host "`n  » $Message" -ForegroundColor $Color }
 }
 
 function Write-Success {
     param([string]$Message)
-    Write-Host "  ✔ $Message" -ForegroundColor Green
+    if (-not $OutputOnly) { Write-Host "  ✔ $Message" -ForegroundColor Green }
 }
 
 function Write-Fail {
     param([string]$Message)
-    Write-Host "`n  ✘ $Message" -ForegroundColor Red
+    if ($OutputOnly) { Write-Error $Message } else { Write-Host "`n  ✘ $Message" -ForegroundColor Red }
     exit 1
 }
 
@@ -204,6 +208,13 @@ Write-Host ""
 Write-Host $commitMessage -ForegroundColor Yellow
 Write-Host ""
 Write-Host "  ─────────────────────────────────────────" -ForegroundColor DarkGray
+
+# ── Modo não-interativo (plugin IntelliJ) ───────────────────────────────────
+
+if ($OutputOnly) {
+    Write-Output $commitMessage
+    exit 0
+}
 
 # ── Ação interativa ─────────────────────────────────────────────────────────
 
