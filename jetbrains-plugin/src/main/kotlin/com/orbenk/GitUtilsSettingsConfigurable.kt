@@ -15,7 +15,10 @@ class GitUtilsSettingsConfigurable : Configurable {
 
     private lateinit var providerCombo: ComboBox<String>
     private lateinit var groqApiKeyField: JBPasswordField
+    private lateinit var groqApiKeyLabel: JBLabel
     private lateinit var geminiApiKeyField: JBPasswordField
+    private lateinit var geminiApiKeyLabel: JBLabel
+    private lateinit var hint: JTextArea
     private lateinit var panel: JPanel
 
     override fun getDisplayName(): String = "Git Utils AI"
@@ -23,17 +26,13 @@ class GitUtilsSettingsConfigurable : Configurable {
     override fun createComponent(): JComponent {
         providerCombo = ComboBox(DefaultComboBoxModel(arrayOf("Groq", "Gemini")))
 
-        groqApiKeyField = JBPasswordField()
-        groqApiKeyField.columns = 40
+        groqApiKeyLabel = JBLabel("Groq API Key:")
+        groqApiKeyField = JBPasswordField().apply { columns = 40 }
 
-        geminiApiKeyField = JBPasswordField()
-        geminiApiKeyField.columns = 40
+        geminiApiKeyLabel = JBLabel("Gemini API Key:")
+        geminiApiKeyField = JBPasswordField().apply { columns = 40 }
 
-        val hint = JTextArea(
-            "Groq (padrão): chave gratuita em https://console.groq.com — GROQ_API_KEY\n" +
-            "Gemini: chave gratuita em https://aistudio.google.com/app/apikey — GEMINI_API_KEY\n" +
-            "As chaves podem ser omitidas se a variável de ambiente correspondente estiver definida."
-        ).apply {
+        hint = JTextArea().apply {
             isEditable = false
             isOpaque = false
             lineWrap = true
@@ -44,14 +43,33 @@ class GitUtilsSettingsConfigurable : Configurable {
 
         panel = FormBuilder.createFormBuilder()
             .addLabeledComponent(JBLabel("Provedor de IA:"), providerCombo, true)
-            .addLabeledComponent(JBLabel("Groq API Key:"), groqApiKeyField, true)
-            .addLabeledComponent(JBLabel("Gemini API Key:"), geminiApiKeyField, true)
+            .addLabeledComponent(groqApiKeyLabel, groqApiKeyField, true)
+            .addLabeledComponent(geminiApiKeyLabel, geminiApiKeyField, true)
             .addComponent(hint)
             .addComponentFillVertically(JPanel(), 0)
             .panel
 
+        providerCombo.addActionListener { updateVisibility() }
+
         reset()
         return panel
+    }
+
+    private fun updateVisibility() {
+        val isGroq = providerCombo.selectedItem == "Groq"
+
+        groqApiKeyLabel.isVisible   = isGroq
+        groqApiKeyField.isVisible   = isGroq
+        geminiApiKeyLabel.isVisible = !isGroq
+        geminiApiKeyField.isVisible = !isGroq
+
+        hint.text = if (isGroq)
+            "Chave gratuita em https://console.groq.com\nOu defina a variável de ambiente GROQ_API_KEY."
+        else
+            "Chave gratuita em https://aistudio.google.com/app/apikey\nOu defina a variável de ambiente GEMINI_API_KEY."
+
+        panel.revalidate()
+        panel.repaint()
     }
 
     override fun isModified(): Boolean {
@@ -73,5 +91,6 @@ class GitUtilsSettingsConfigurable : Configurable {
         providerCombo.selectedItem = s.provider
         groqApiKeyField.text       = s.groqApiKey
         geminiApiKeyField.text     = s.apiKey
+        updateVisibility()
     }
 }
