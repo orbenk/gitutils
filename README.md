@@ -207,10 +207,125 @@ de cadastro adicional.
 
 ---
 
+---
+
+# New-Branch.ps1
+
+Script interativo para criação de branches com nomenclatura padronizada, seguindo as convenções do Git Flow e Conventional Commits.
+
+## Funcionalidades
+
+- Menu interativo com 9 tipos de branch
+- Campo opcional para número de ticket/issue (Jira, GitHub Issues, etc.)
+- Sanitização automática do nome: remove acentos, converte espaços em hífens, força lowercase
+- Detecta se a branch já existe (local ou remote) antes de criar
+- Atualiza a branch de origem via `git fetch` antes de ramificar
+- Pergunta sobre push imediato ao final
+
+## Tipos de branch disponíveis
+
+| Tipo       | Prefixo     | Uso                                          |
+|------------|-------------|----------------------------------------------|
+| Feature    | `feature/`  | Nova funcionalidade                          |
+| Fix        | `fix/`      | Correção de bug em desenvolvimento           |
+| Hotfix     | `hotfix/`   | Correção urgente em produção                 |
+| Release    | `release/`  | Preparação de nova versão                    |
+| Chore      | `chore/`    | Tarefa técnica sem impacto funcional         |
+| Docs       | `docs/`     | Documentação apenas                          |
+| Refactor   | `refactor/` | Refatoração sem mudança de comportamento     |
+| Test       | `test/`     | Adição ou correção de testes                 |
+| CI/CD      | `ci/`       | Pipelines e automações de build/deploy       |
+
+## Como usar
+
+```powershell
+# Interativo — parte da branch atual
+.\New-Branch.ps1
+
+# Especifica branch de origem
+.\New-Branch.ps1 -BaseBranch main
+
+# Já faz push ao final sem perguntar
+.\New-Branch.ps1 -Push
+```
+
+## Exemplo de sessão
+
+```
+  ╔══════════════════════════════════════════╗
+  ║        Criador de Branches Git           ║
+  ╚══════════════════════════════════════════╝
+
+  Branch atual  : main
+  Branch origem : main
+
+  Tipo da branch
+  ──────────────
+  [1]  Feature    — Nova funcionalidade          (ex: feature/login-oauth2)
+  [2]  Fix        — Correção de bug              (ex: fix/botao-submit-desativado)
+  [3]  Hotfix     — Correção urgente em produção (ex: hotfix/falha-calculo-imposto)
+  ...
+
+  Escolha o tipo [1-9]: 1
+  ✔ Tipo selecionado: Feature
+
+  Ticket / Issue (opcional)
+  ─────────────────────────
+  Número do ticket: PROJ-142
+
+  Nome da branch
+  ──────────────
+  Nome: Adicionar autenticação com OAuth2
+
+  ──────────────────────────────────────────────
+   Branch que será criada:
+
+   feature/proj-142-adicionar-autenticacao-com-oauth2
+
+   A partir de: main
+  ──────────────────────────────────────────────
+
+  Confirmar? [s] Sim  [e] Editar nome  [n] Cancelar: s
+
+  » Criando branch a partir de 'main'...
+  ✔ Branch criada e checkout realizado!
+
+  Fazer push da branch para o remote agora? [s/n]: s
+  ✔ Push realizado. Branch disponível no remote.
+```
+
+## Parâmetros
+
+| Parâmetro     | Tipo   | Padrão         | Descrição                                   |
+|---------------|--------|----------------|---------------------------------------------|
+| `-BaseBranch` | string | branch atual   | Branch de origem para criar a nova branch   |
+| `-Push`       | switch | —              | Faz push imediato sem perguntar             |
+
+---
+
+## Fluxo completo de trabalho
+
+Com os três scripts em conjunto, o fluxo fica:
+
+```powershell
+# 1. Cria a branch
+.\New-Branch.ps1 -BaseBranch main
+
+# 2. Desenvolve... e ao final commita com mensagem semântica
+git add .
+.\Get-CommitMessage.ps1
+
+# 3. Abre o PR no GitHub
+.\New-PullRequest.ps1 -BaseBranch main
+```
+
+---
+
 ## Estrutura do repositório
 
 ```
 git-commit-ai/
+├── New-Branch.ps1          # Criação interativa de branches
 ├── Get-CommitMessage.ps1   # Gera mensagem de commit semântico
 ├── New-PullRequest.ps1     # Gera e abre PR no GitHub
 ├── commit_script_flow.svg  # Diagrama do fluxo
